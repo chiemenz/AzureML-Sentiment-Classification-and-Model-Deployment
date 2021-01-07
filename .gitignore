@@ -1,4 +1,6 @@
-#Ignore
+#Ignore sentiment polarity .tsv files
 *.tsv
+#Ignore sentiment polarity Readme files
 *.Readme.txt
+#Ignore datasets
 data/datasets/*

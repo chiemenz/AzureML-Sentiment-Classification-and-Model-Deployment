@@ -4,3 +4,5 @@
 *.Readme.txt
 #Ignore datasets
 data/datasets/*
+#Ignore .egg-info respository setup files
+*.egg-info

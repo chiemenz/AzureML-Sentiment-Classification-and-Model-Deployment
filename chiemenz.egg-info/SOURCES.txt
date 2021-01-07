@@ -1,6 +1,0 @@
-setup.py
-chiemenz.egg-info/PKG-INFO
-chiemenz.egg-info/SOURCES.txt
-chiemenz.egg-info/dependency_links.txt
-chiemenz.egg-info/top_level.txt
-rating_ml_modules/__init__.py

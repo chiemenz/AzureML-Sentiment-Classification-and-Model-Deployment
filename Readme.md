@@ -74,3 +74,7 @@ python setup.py develop
 ```
 python -m spacy download en_trf_robertabase_lg
 ```
+* VI. Download _en_core_web_md_ spacy model
+```
+python -m spacy download en_core_web_md
+```

@@ -11,4 +11,4 @@ pip install -r requirements.txt
 
 ### 3. Execute 
 
-python setup.py
+python setup.py develop

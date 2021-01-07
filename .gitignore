@@ -1,2 +1,4 @@
+#Ignore
 *.tsv
-
+*.Readme.txt
+data/datasets/*

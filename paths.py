@@ -1,8 +1,9 @@
 import os
+from copy import deepcopy
 
 PATH_PACKAGE = os.path.normpath(os.path.dirname(os.path.abspath(__file__)))
 # Directory containing the package
-PATH_ROOT = os.path.normpath(os.path.join(PATH_PACKAGE, os.pardir))
+PATH_ROOT = deepcopy(PATH_PACKAGE)
 # Path to sentiment polarity directory
 PATH_POLARITY_DICTIONARIES = os.path.join(PATH_ROOT, "data", "polarity_data")
 # Path to Adjective sentiment polarity .tsv file directory

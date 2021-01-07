@@ -64,7 +64,7 @@ class SpacyEmbedding:
 
         vector_dict_list = [
             {f"dim_{ind}": val for ind, val in enumerate(self.mean_transformer_embedding(input_text=txt))} for txt in
-            tqdm(text_dataframe.Review)]
+            tqdm(text_dataframe.Review, "Embed the Review Texts")]
         embedding_df = pd.DataFrame(vector_dict_list)
         embedding_df.index = text_dataframe.Review
         embedding_df.index.name = "text"

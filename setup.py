@@ -1,5 +1,6 @@
-import setuptools
 from os import path
+
+import setuptools
 
 ROOT_PATH = path.abspath(path.dirname(__file__))
 

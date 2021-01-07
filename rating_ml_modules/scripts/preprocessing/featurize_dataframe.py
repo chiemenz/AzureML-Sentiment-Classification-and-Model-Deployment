@@ -1,3 +1,14 @@
+"""
+This script can be used to compute Features of hotel review Texts
+the resulting DataFrame will be saved as a .csv file at ./data/datasets/preprocessed
+
+Example arguments:
+*your_absolute_filepath/tripadvisor_hotel_reviews.csv
+--spacy-model
+en_trf_robertabase_lg
+--topic-number
+30
+"""
 __author__ = "Christoph Hiemenz"
 __version__ = "1.0"
 __email__ = "ch314@gmx.de"
@@ -6,17 +17,17 @@ import argparse
 import logging
 import os
 
+import nltk
 import numpy as np
 import pandas as pd
 import spacy
-from rating_ml_modules.featurization.topic_modeling.topic_model import TopicModeling, topic_dictionary_2_dataframe
-import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
 from paths import PATH_ADJ_POLARITY_FILES, PATH_FREQ_WORD_POLARITY_FILES, PATH_PREPROCESSED_DF
 from rating_ml_modules.featurization.embeddings.review_text_embedding import SpacyEmbedding, Tfidf
 from rating_ml_modules.featurization.preprocessing import Preprocessing, relabel_reviews
+from rating_ml_modules.featurization.topic_modeling.topic_model import TopicModeling, topic_dictionary_2_dataframe
 from rating_ml_modules.featurization.word_sentiment_polarity.sentiment_polarity import SentimentPolarity, \
     get_polarity_dictionary
 
@@ -78,15 +89,19 @@ def main(arguments: argparse):
     logger.info(f"The Review texts were embedded via {selected_embedding} with dimensions {embedded_df.shape}")
 
     # Compute the sentiment polarity scores of the Review texts
-    adjective_polarity_dictionary = get_polarity_dictionary(directory_path=PATH_ADJ_POLARITY_FILES)
-    frequent_word_polarity_dictionary = get_polarity_dictionary(directory_path=PATH_FREQ_WORD_POLARITY_FILES)
+    try:
+        adjective_polarity_dictionary = get_polarity_dictionary(directory_path=PATH_ADJ_POLARITY_FILES)
+        frequent_word_polarity_dictionary = get_polarity_dictionary(directory_path=PATH_FREQ_WORD_POLARITY_FILES)
 
-    sentiment_polarity = SentimentPolarity(tokenizer=word_tokenize,
-                                           frequent_word_polarity_dict=frequent_word_polarity_dictionary,
-                                           adjective_polarity_dict=adjective_polarity_dictionary)
+        sentiment_polarity = SentimentPolarity(tokenizer=word_tokenize,
+                                               frequent_word_polarity_dict=frequent_word_polarity_dictionary,
+                                               adjective_polarity_dict=adjective_polarity_dictionary)
 
-    review_texts = list(cleaned_dataframe.Review)
-    sentiment_polarity_df = sentiment_polarity(review_texts)
+        review_texts = list(cleaned_dataframe.Review)
+        sentiment_polarity_df = sentiment_polarity(review_texts)
+        logger.info("Successfully computed sentiment polarity scores")
+    except Exception:
+        raise ImportError("Ensure to download the sentiment polarity lexica. See Readme.md")
 
     # Compute the Review length features
     cleaned_dataframe['review_len'] = cleaned_dataframe.Review.apply(lambda x: len(x.split(" ")))
@@ -96,6 +111,9 @@ def main(arguments: argparse):
     cleaned_dataframe['long_review'] = cleaned_dataframe['log_len'].apply(lambda x: 1 if x > high_percentile else 0)
     cleaned_dataframe['short_review'] = cleaned_dataframe['log_len'].apply(lambda x: 1 if x < low_percentile else 0)
     review_len_df = cleaned_dataframe.loc[:, ["long_review", "short_review", "norm_rating"]]
+    review_len_df.index = cleaned_dataframe.Review
+    review_len_df.index.name = "text"
+    logger.info("Successfully computed review text length features")
 
     # Perform topic modeling to compute Topic embeddings for each Review text
     nltk.download('stopwords')
@@ -109,17 +127,20 @@ def main(arguments: argparse):
                                    stop_words=english_stop_words)
     topic_modeling.preprocess()
     topic_modeling.token_list_2_lda_corpus()
+
     number_of_topics = arguments.topic_number
-    if type(number_of_topics) == int and number_of_topics > 1:
+    if (type(number_of_topics) == int) and (number_of_topics > 1):
         chunk_size = 100
         topic_model_results = topic_modeling.fit_lda_topic_model(num_topics=number_of_topics,
                                                                  passes=20,
                                                                  chunksize=chunk_size)
-        logger.info(f"LDA topic modeling coherence score: {topic_model_results['coherence_score']}\n"
-                    f"log perplexity {topic_model_results['log_perplexity']}")
+        logger.info(f"Topic modeline was successfully completed")
+        logger.info(f"LDA topic modeling coherence score: {np.round(topic_model_results['coherence_score'])}\n"
+                    f"LDA topic modeling log perplexity: {np.round(topic_model_results['log_perplexity'], 3)}")
 
         review_topic_dictionary = topic_modeling(review_texts)
         topic_vec_df = topic_dictionary_2_dataframe(review_topic_dictionary=review_topic_dictionary)
+
     else:
         raise Exception("The number of topics needs to be and integer > 1")
 
@@ -128,6 +149,7 @@ def main(arguments: argparse):
                                       on="text", how='inner').join(sentiment_polarity_df,
                                                                    on="text", how="inner").join(embedded_df, on="text",
                                                                                                 how="inner")
+    logger.info(f"The preprocessed DataFrame has dimension {featurized_df.shape}")
     os.makedirs(PATH_PREPROCESSED_DF, exist_ok=True)
     save_path = os.path.join(PATH_PREPROCESSED_DF, f"{selected_embedding}preprocessed_df.csv")
     featurized_df.to_csv(save_path)
@@ -142,7 +164,7 @@ embedding_args.add_argument('--spacy-model', type=str, default='en_trf_robertaba
 embedding_args.add_argument('--tfidf-character-ngram', type=int,
                             help="Specify a character n-gram >= 2 e.g. 2 means character bi-grams"
                                  "will be selected")
-parser.add_argument('--topic-number', type=str, default=30,
+parser.add_argument('--topic-number', type=int, default=30,
                     help="Number of topics for LDA model")
 
 if __name__ == '__main__':

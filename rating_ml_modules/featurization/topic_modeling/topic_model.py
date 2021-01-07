@@ -18,7 +18,8 @@ def topic_dictionary_2_dataframe(review_topic_dictionary):
     :return: DataFrame with Review texts as indices and topic vector dimensions as columns
     """
     df_list = []
-    for key, topic_vector in tqdm(review_topic_dictionary.items(), total=len(review_topic_dictionary)):
+    for key, topic_vector in tqdm(review_topic_dictionary.items(), total=len(review_topic_dictionary),
+                                  desc="Prepare Topic model DataFrame"):
         tmp_df = pd.DataFrame({'text': [key]})
         for ind, scalar in enumerate(topic_vector):
             tmp_df[f"topic_{ind}"] = scalar
@@ -100,7 +101,8 @@ class TopicModeling:
         return self.normalize_input_text(input_text, *self.method_list)
 
     def preprocess(self):
-        self.texts = [self.preprocess_text(txt) for txt in tqdm(self.texts)]
+        self.texts = [self.preprocess_text(txt) for txt in tqdm(self.texts,
+                                                                desc="Topic model text pre-processing")]
 
     def tokenize_text(self):
         """
@@ -161,7 +163,8 @@ class TopicModeling:
 
     def __call__(self, input_texts: List) -> Dict:
         if self.lda_model:
-            clean_texts = [self.preprocess_text(txt) for txt in tqdm(input_texts)]
+            clean_texts = [self.preprocess_text(txt) for txt in tqdm(input_texts,
+                                                                     desc="Topic model text pre-processing")]
             return {txt: self.get_topic_vector(indices) for txt, indices in zip(input_texts, clean_texts)}
 
         else:

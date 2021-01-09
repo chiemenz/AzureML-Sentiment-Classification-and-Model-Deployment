@@ -91,7 +91,7 @@ def main():
     run.log("min_child_weight:", np.float(args.min_child_weight))
     run.log("gamma", np.float(args.gamma))
     run.log("subsample:", np.float(args.subsample))
-    run.log("colsample_bytree:",  np.float(args.colsample_by_tree))
+    run.log("colsample_bytree:",  np.float(args.colsample_bytree))
     run.log("reg alpha:", np.float(args.reg_alpha))
     run.log("learning rate:", np.float(args.eta))    
 

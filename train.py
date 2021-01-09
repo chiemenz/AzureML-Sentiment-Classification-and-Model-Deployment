@@ -62,9 +62,6 @@ def main():
                         default=0.00001,
                         help="L1 regularization of the weights. Increasing the values more strongly prevents "
                              "overfitting.")
-    parser.add_argument('--nthread', type=int,
-                        default=4,
-                        help="Number of parallel threads for XGBoost.")
     parser.add_argument('--eta', type=float,
                         default=0.2,
                         help="Learning rate for XGBoost.")
@@ -85,14 +82,21 @@ def main():
         'subsample': args.subsample,
         'colsample_bytree': args.colsample_bytree,
         'reg_alpha': args.reg_alpha,
-        'nthread': args.nthread,
         'seed': args.seed,
         'objective': 'multi:softmax',
         'num_class': 3,
     }
-
-    run.log("Regularization Strength:", np.float(args.C))
-    run.log("Max iterations:", np.int(args.max_iter))
+    
+    run.log("Start training")
+    run.log("Loaded a dataset with sample size:", np.int(x_train.shape[0]))
+    run.log("Number of estimators:", np.float(args.n_estimators))
+    run.log("max depth:",  np.int(args.max_depth))
+    run.log("min_child_weight:", np.float(args.min_child_weight))
+    run.log("gamma", np.float(args.gamma))
+    run.log("subsample:", np.float(args.subsample))
+    run.log("colsample_bytree:",  np.float(args.colsample_by_tree))
+    run.log("reg alpha:", np.float(args.reg_alpha))
+    run.log("learning rate:", np.float(args.eta))    
 
     model = xgb.XGBClassifier(
         objective=params['objective'],
@@ -101,7 +105,6 @@ def main():
         gamma=params['gamma'],
         n_estimators=params['n_estimators'],
         seed=params['seed'],
-        nthread=params['nthread'],
         colsample_bytree=params['colsample_bytree'],
         reg_alpha=params['reg_alpha'],
         num_class=params['num_class']

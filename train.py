@@ -12,6 +12,8 @@ import xgboost as xgb
 from sklearn.metrics import accuracy_score
 import pandas as pd
 from azureml.core.run import Run
+import joblib
+
 
 # Here the main method is defined for fitting the classifier and computing its accuracy
 run = Run.get_context()
@@ -112,7 +114,9 @@ def main():
     accuracy = accuracy_score(y_test, model.predict(x_test))
 
     run.log("Accuracy", np.float(accuracy))
-
+    os.makedirs('outputs', exist_ok=True)
+    # note file saved in the outputs folder is automatically uploaded into experiment record
+    joblib.dump(value=model, filename='outputs/xgboost_model.pkl')
 
 if __name__ == '__main__':
     main()

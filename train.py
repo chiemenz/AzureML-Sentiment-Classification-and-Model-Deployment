@@ -20,15 +20,9 @@ run = Run.get_context()
 def main():
     # Add arguments to script
     parser = argparse.ArgumentParser(description="hyperparameters of the logistic regression model")
-    parser.add_argument('--workspace-name', type=str, 
-                        help="Name of your azureml workspace")
-    parser.add_argument('--subscription-id', type=str, 
-                        help="Name of your subscription id")   
-    parser.add_argument('--resource-group', type=str, 
-                        help="Name of your resource group")   
-    parser.add_argument('--test-dataset-name', type=str, 
+    parser.add_argument('--test-set', type=str, 
                         help="Name of your test set")
-    parser.add_argument('--train-dataset-name', type=str, 
+    parser.add_argument('--train-set', type=str, 
                         help="Name of your training set")
     parser.add_argument('--max-depth', type=int, default=3,
                         help="How deep is the tree growing during one round of boosting")
@@ -73,21 +67,13 @@ def main():
         'num_class': 3,
     }
     
-    from azureml.core import Workspace, Dataset
+    ws = run.experiment.workspace        
+     
+    run.log("begin", "Started the run")
+    dataset_training = Dataset.get_by_id(ws, id=args.train_set)
+    dataset_test = Dataset.get_by_id(ws, id=args.test_set)
+    run.log("loaded_dataset", str(dataset_test))
 
-    subscription_id = args.subscription_id
-    resource_group = args.resource_group
-    workspace_name = args.workspace_name
-    test_dataset_name = args.test_dataset_name
-    train_dataset_name = args.train_dataset_name
-
-
-    workspace = Workspace(subscription_id, resource_group, workspace_name)
-
-    # Load Dataset from workspace
-    dataset_training = Dataset.get_by_name(workspace, name=train_dataset_name)    
-    dataset_test = Dataset.get_by_name(workspace, name=test_dataset_name)
-    
     # Define test and train sets
     train_df = dataset_training.to_pandas_dataframe()
     test_df = dataset_test.to_pandas_dataframe()
@@ -98,7 +84,7 @@ def main():
     y_test = list(test_df.norm_rating)
     
     
-    run.log("Start training")
+    run.log("train_start", "Start training")
     run.log("Loaded a dataset with sample size:", np.int(x_train.shape[0]))
     run.log("Number of estimators:", np.float(args.n_estimators))
     run.log("max depth:",  np.int(args.max_depth))

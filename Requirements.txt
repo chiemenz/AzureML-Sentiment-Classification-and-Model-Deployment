@@ -1,0 +1,8 @@
+azureml-sdk
+pandas
+scikit-learn
+gensim
+nltk
+xgboost
+numpy
+spacy

@@ -84,8 +84,7 @@ def main():
     y_train = list(train_df.norm_rating)
     x_test = test_df.drop(columns=['norm_rating']).to_numpy()
     y_test = list(test_df.norm_rating)
-    
-    
+
     run.log("train_start", "Start training")
     run.log("Loaded a dataset with sample size:", np.int(x_train.shape[0]))
     run.log("Number of estimators:", np.float(args.n_estimators))
@@ -117,6 +116,7 @@ def main():
     os.makedirs('outputs', exist_ok=True)
     # note file saved in the outputs folder is automatically uploaded into experiment record
     joblib.dump(value=model, filename='outputs/xgboost_model.pkl')
+
 
 if __name__ == '__main__':
     main()

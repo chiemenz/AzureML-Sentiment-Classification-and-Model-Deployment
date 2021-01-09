@@ -6,7 +6,7 @@ from sklearn.externals import joblib
 
 def init():
     global model
-    model_path = os.path.join(os.getenv('AZUREML_MODEL_DIR'), 'automl_model.pkl')
+    model_path = os.path.join(os.getenv('AZUREML_MODEL_DIR'), 'xgboost_model.pkl')
     model = joblib.load(model_path)
 
 

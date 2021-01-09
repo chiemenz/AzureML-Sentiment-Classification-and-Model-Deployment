@@ -3,17 +3,15 @@ This script can be used to train and evaluate an XGBoost classifier for hyperpar
 Azureml hyperdrive
 """
 # Import packages
-
 from azureml.core import Dataset, Datastore, Workspace, Experiment
 import argparse
 import os
 import numpy as np
 import xgboost as xgb
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import f1_score, accuracy_score
 import pandas as pd
 from azureml.core.run import Run
 import joblib
-
 
 # Here the main method is defined for fitting the classifier and computing its accuracy
 run = Run.get_context()
@@ -110,9 +108,11 @@ def main():
 
     model.fit(x_train, y_train)
 
+    f1_score_weighted = f1_score(y_test, model.predict(x_test), average='weighted')
     accuracy = accuracy_score(y_test, model.predict(x_test))
 
     run.log("Accuracy", np.float(accuracy))
+    run.log("F1ScoreWeighted", np.float(f1_score_weighted))
     os.makedirs('outputs', exist_ok=True)
     # note file saved in the outputs folder is automatically uploaded into experiment record
     joblib.dump(value=model, filename='outputs/xgboost_model.pkl')

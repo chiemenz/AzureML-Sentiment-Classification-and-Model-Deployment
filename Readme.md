@@ -168,11 +168,17 @@ The following hyperparameters were provided to the XGBoost Model
 >* '--seed':  "Random seed."
 >* '--num-iterations': "Number of fitting iterations"
 
+The parameters for RandomSearch were selected according to my prior experience and the excellent [XGBoost Tuning Blog Post](https://www.analyticsvidhya.com/blog/2016/03/complete-guide-parameter-tuning-xgboost-with-codes-python/)
+
+* XGBoost is very sensitive to tree-centered parameters such as _max_depth, min_child_weight, subsample, colsample_bytree, gamma_
+
+* Also the regularization parameter alpha was tuned 
+
 For Hyperparameter tuning a Random Grid was defined:
 >* uniform distribution of the _subsample & gamma parameters_
 >* loguniform distribution of _reg-alpha parameter_
 >* discrete choice for _max-depth, min-child-weight, colsample-bytree parameters_
-> 
+
 ``` 
 parameter_sampling_grid = RandomParameterSampling(
      {
@@ -196,6 +202,8 @@ early_termination_policy = BanditPolicy(slack_factor = 0.1, evaluation_interval=
 
 > The _Accuracy score_ was defined as a primary criterion to be maximized during parameter search
 > However besides the primary metric, also the weighted F1 score as logged 
+
+The hyperparameter tuning was performed via the [train.py](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/rating_ml_modules/scripts/machine_learning/train.py) script
 
 ### XGBoost Hyperparameter Tuning Results
 
@@ -224,7 +232,7 @@ Hyperparameters of the best model:
 ## Model Deployment
 The best XGBoost model as selected by hyperparameter Randomsearch was deployed as a Webservice.
 
-The scoring script.py was defined in such a way, that: 
+The scoring script [score.py](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/rating_ml_modules/scripts/machine_learning/score.py) was defined in such a way, that: 
 
 _Negative_ was returned for _class:0_
 
@@ -271,13 +279,13 @@ response = requests.post(service_url, test_sample, headers=headers)
 print("prediction:", response.text)
 ``` 
 
-*TODO*: Give an overview of the deployed model and instructions on how to query the endpoint with a sample input.
+## Extensive Exploratory Data-Analysis and Feature engineering
 
-
-## Standout Suggestions
-*TODO (Optional):* This is where you can provide information about any standout suggestions that you have attempted.
-
-
+A lot of feature engineering was performed prior to the Hyperparameter Tuning. 
+For this purpose also a Topic modeling and Random Forest Classification for identifying the 
+feature imporatance of the engineered features was performed with the following 
+Jupyter notebook:
+> [Exploratory Data Analysis and Feature Engineering](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/jupyter_notebooks/exploratory_data_analysis.ipynb)
 
 
 

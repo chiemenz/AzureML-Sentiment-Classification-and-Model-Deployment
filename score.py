@@ -20,8 +20,14 @@ def run(raw_data):
     data = np.array(json.loads(raw_data)['data'])
     csr_data = scipy.sparse.csr_matrix(data)
     test_data = xgb.DMatrix(csr_data)
-
+    
     # Make prediction.
     y_hat = model.predict(test_data)
-    # You can return any data type as long as it's JSON-serializable.
-    return y_hat.tolist()
+    map_2_rating = {0: "Negative", 1: "Neutral", 2:"Positive"}
+    y_hat_list = [map_2_rating[j] for j in y_hat.tolist()]
+
+    # Perform some logging
+    print(f"there was an incomding request {data}")
+    print(f"Response to request {y_hat_list}")
+    
+    return y_hat_list

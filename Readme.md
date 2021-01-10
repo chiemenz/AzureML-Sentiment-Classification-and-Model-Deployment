@@ -305,6 +305,15 @@ service_url = "http://06df2eb2-6456-4d1d-ae18-0470e3d3e11b.southcentralus.azurec
 response = requests.post(service_url, test_sample, headers=headers)
 print("prediction:", response.text)
 ``` 
+## Conclusion
+All in all the Hyperparameter Search for an XGBoost model was the most successful with the engineered features.
+However the class imbalance made was still not resolvable and the feature engineering required a lot of exploratory 
+data analysis. 
+Finetuning a pre-trained neural model such as bert-base-uncased, distilbert.... might lead to even better performance but will
+also require more training time and more costly GPU resources. 
+
+But the combination of polarity dictionaries, transformer embeddings and topic modeling was a very fruitful representation and 
+yielded some reasonable results in particular the test set **F1_score: 0.908**
 
 ## Extensive Exploratory Data-Analysis and Feature engineering
 

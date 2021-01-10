@@ -13,8 +13,10 @@ The Dataset was modified to facilitate the task the Rating column was binned to 
 > * Negative - class 0 (Rating 1* & Rating 2*)
 > * Neutral - class 1 (Rating 3*)
 > * Positive - class 2 (Rating 4* & 5*)
+> 
+> This thus becomes a **Sentiment classification task**
 
-The thus becomes a **Sentiment classification task**
+However there is a [Class imbalance](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/class_imbalance.png)
 
 To compare the Feature engineering of azureml AutoML with hand-crafted engineering
 a [preprocessing script](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/rating_ml_modules/scripts/preprocessing/featurize_dataframe.py) was implemented:
@@ -141,6 +143,7 @@ The following parameters were set for the AutoML Training Configuration:
 ### Results
 The best selected AutoML models were a Voting Ensemble and Random Forest with:
 
+[Best AutoML Model](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/BestAutoMLModel.PNG)
 > Voting Ensemble Accuracy: _0.7352_
 > RandomForest Accuracy: _0.7352_
 
@@ -148,7 +151,16 @@ The best selected AutoML models were a Voting Ensemble and Random Forest with:
 * The comparison with the Hyperparameter tuning results with AutoML revealed that the feature engineering is a major advantage towards the automated preprocessing thus the results can be improved if the features are provided to AutoML
 * Much better results might be obtainable by using a pre-trained neural model e.g. a pre-trained bert-base-uncased 
 
-*TODO* Remeber to provide screenshots of the `RunDetails` widget as well as a screenshot of the best model trained with it's parameters.
+[AutoML RunDetails partI](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/AutoMLRunDetails1.PNG)
+[AutoML RunDetails partII](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/AutoMLRunDetails2.PNG)
+[AutoML RunDetails partIII](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/AutoMLRunDetails3.PNG)
+
+> A big pitfall of using Accuracy as a metric to be optimized was that the best 
+> model learned to perfectly classify 100% of all examples of class 2 while it failed for 100% of the 
+> cases for classes 0 and 1 [Confusion Matrix](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/AutoMLClassImbalance.PNG)
+> This can be seen by the confusion matrix 
+> In general the Dataset is highly class imbalanced and e.g. an **F1 score or weighted AUC** would have been a better metric
+> Also stratified sampling, upsampling, downsampling might help with the class imbalance
 
 ## Hyperparameter Tuning
 In the previous azureml experiments with AutoML mostly [LightGBM](https://lightgbm.readthedocs.io/en/latest/) was the best performing model.
@@ -205,8 +217,16 @@ early_termination_policy = BanditPolicy(slack_factor = 0.1, evaluation_interval=
 
 The hyperparameter tuning was performed via the [train.py](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/rating_ml_modules/scripts/machine_learning/train.py) script
 
+
 ### XGBoost Hyperparameter Tuning Results
 
+For some plots of the Hyperparameter Search RunDetails see:
+* [RandomSearch Parameter Grid Plot](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/HyperparamRun.PNG)
+* [Accuracy Plot for Hyperparameter Search](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/HyperparamRun1.PNG)
+* [Log of Hyperparameter value configurations with the corresponding scores](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/HyperparamRunWithHyperparams.PNG)
+* [Parameter Search RunDetail Logs](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/HyperparamRun2.PNG)
+
+* [Best Model](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/BestHyperDriveModel.PNG)
 > Test set accuracy: _0.9189_
 > Test set weighted F1 score: _0.9080_
 
@@ -231,6 +251,13 @@ Hyperparameters of the best model:
 
 ## Model Deployment
 The best XGBoost model as selected by hyperparameter Randomsearch was deployed as a Webservice.
+[Successfull deployment of the best XGBoost model](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/BestModelDeployedAsEndpoint.PNG)
+
+[Endpoint of deployed model](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/DeployedHyperparamModel.PNG)
+
+[Application Insights Logs for best model](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/LoggingEnabledByApplicationInsights.PNG)
+
+[Example Request against best model endpoint](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/ExampleRequestBestModel.PNG)
 
 The scoring script [score.py](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/rating_ml_modules/scripts/machine_learning/score.py) was defined in such a way, that: 
 
@@ -287,6 +314,21 @@ feature imporatance of the engineered features was performed with the following
 Jupyter notebook:
 > [Exploratory Data Analysis and Feature Engineering](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/jupyter_notebooks/exploratory_data_analysis.ipynb)
 
+A tiny fraction of the gained insights is presented here:
+> * [Topic Model Coherence Score Grid Search - 30 Topics were selected for the embedding](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/coherence_scores.png)
+> * [Mean Adjective Polarity Score - positive reviews tend to have higher scores](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/class_distribution_mean_adj.png)
+> * [Roberta Transformer Embedding TSNE - there are somewhat distinct subspaces for negative reviews](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/roberta_vector_tsne.png)
+> * [Topic Vector TSNE visualization - there are somewhat distinct subspaces for negative reviews](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/topic_vector_tsne.png)
+> * [TFIDF vector TSNE visualization - there are somewhat distinct subspaces for negative reviews](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/tfidf_vector_tsne.png)
+
+> * [confusion matrix: RandomForest default parameter sanity check are the engineered features reasonable](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/RF_roberta_embedding_confusion_matrix.PNG)
+> * [classification report: RandomForest default parameter sanity check are the engineered features reasonable](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/RF_roberta_embedding_metrics.PNG)
+> * [feature importance plot: RandomForest default parameter sanity check are the engineered features reasonable](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/RF_roberta_embedding_Feature_Importance.PNG)
+
+All in all this pointed out that a traditional machine learning approach with those engineered features is worth trying
+
+## VIDEO Summary
+[Video Summary of the Project](https://www.loom.com/share/ed1c914c3e954cc4967407fb1b450dc8)
 
 
 

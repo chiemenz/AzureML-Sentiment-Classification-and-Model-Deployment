@@ -401,15 +401,33 @@ Jupyter notebook:
 
 A tiny fraction of the gained insights is presented here:
 ##### Exploratory Data Analysis
+One interesting feature for the classification task comprises a topic model vector. With the topics being fitted on the documents via 
+**Latent-Dirichlet-Allocation (LDA)** based on the lemmatized tokens and just maintaining tokens with the part-of-speech-tags (POS) ADV, ADV, NOUN and VERB. 
+To decide on the number of topics a Grid Search was performed with the _topic coherence score as a target metric_.
 > * [Topic Model Coherence Score Grid Search - 30 Topics were selected for the embedding](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/coherence_scores.png)
+
+Another feature comprises the _minimum, maximum and mean_ **frequent word and adjective polarity scores** which are obtained by matching the Adjectives and frequent words from 
+polarity dictionaries with the corresponding documents and aggregating the polarity scores. The plot indicates increasing mean adjective polarity scores for classes 1 and 2 compared to class 0.
+
 > * [Mean Adjective Polarity Score - positive reviews tend to have higher scores](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/class_distribution_mean_adj.png)
+
+To assess how well the different embeddings (document topic vectors, roberta document embeddings, TFIDF document embeddings) are separating the different classes, 2D plots of the dimension reduced TSNE embeddings were visualized. 
+Those plots indicate that all of those embeddings show at least some subspace being occupied by the Negative and Neutral hotel reviews.
+
 > * [Roberta Transformer Embedding TSNE - there are somewhat distinct subspaces for negative reviews](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/roberta_vector_tsne.png)
 > * [Topic Vector TSNE visualization - there are somewhat distinct subspaces for negative reviews](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/topic_vector_tsne.png)
 > * [TFIDF vector TSNE visualization - there are somewhat distinct subspaces for negative reviews](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/tfidf_vector_tsne.png)
 
 ##### Sanity check of engineered features
+As a sanity check for how well suited the engineered features are for sentiment classification a simple Random Forest classifier was fitted to the training data and the confusion matrix and classification report were 
+evaluated for this classification model with its default fitting parameters. Both the confusion matrix and the classification report indicate that the 
+RF model is at least reasonably capable of predicting the labels for class 0 and 2 correctly while it totally fails to predict class 1. 
+The weighted average F1 score 0.79 and the accuracy score 0.84 for this very crude classification attempt which is a good starting point.
 > * [confusion matrix: RandomForest default parameter sanity check are the engineered features reasonable](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/RF_roberta_embedding_confusion_matrix.PNG)
 > * [classification report: RandomForest default parameter sanity check are the engineered features reasonable](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/RF_roberta_embedding_metrics.PNG)
+
+Also the feature importance of the engineered features was evaluated. This indicates that in particular the polarity scores and Roberta embedding are mainly contributing to the classification. 
+
 > * [feature importance plot: RandomForest default parameter sanity check are the engineered features reasonable](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/RF_roberta_embedding_Feature_Importance.PNG)
 
 All in all this pointed out that a traditional machine learning approach with those engineered features is worth trying

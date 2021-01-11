@@ -34,7 +34,20 @@ from rating_ml_modules.featurization.word_sentiment_polarity.sentiment_polarity 
 english_stop_words = stopwords.words('english')
 
 
-def main(arguments: argparse):
+def main():
+    parser = argparse.ArgumentParser(description='Script for extracting features from a hotel review dataset')
+    parser.add_argument('dataset_path', type=str, help="Path to the  Kaggle Trip Advisor Reviews Dataset")
+    embedding_args = parser.add_mutually_exclusive_group(required=True)
+    embedding_args.add_argument('--spacy-model', type=str, default='en_trf_robertabase_lg',
+                                help="Specify a spacy model for Text Vectorization")
+    embedding_args.add_argument('--tfidf-character-ngram', type=int,
+                                help="Specify a character n-gram >= 2 e.g. 2 means character bi-grams"
+                                     "will be selected")
+    parser.add_argument('--topic-number', type=int, default=30,
+                        help="Number of topics for LDA model")
+
+    arguments = parser.parse_args()
+
     # Load the Dataset
     dataset_path = os.path.normpath(arguments.dataset_path)
     review_df = pd.read_csv(dataset_path, encoding="utf-8")
@@ -156,19 +169,7 @@ def main(arguments: argparse):
     logger.info(f"The preprocessed dataframe has been saved to {save_path}")
 
 
-parser = argparse.ArgumentParser(description='Script for extracting features from a hotel review dataset')
-parser.add_argument('dataset_path', type=str, help="Path to the  Kaggle Trip Advisor Reviews Dataset")
-embedding_args = parser.add_mutually_exclusive_group(required=True)
-embedding_args.add_argument('--spacy-model', type=str, default='en_trf_robertabase_lg',
-                            help="Specify a spacy model for Text Vectorization")
-embedding_args.add_argument('--tfidf-character-ngram', type=int,
-                            help="Specify a character n-gram >= 2 e.g. 2 means character bi-grams"
-                                 "will be selected")
-parser.add_argument('--topic-number', type=int, default=30,
-                    help="Number of topics for LDA model")
-
 if __name__ == '__main__':
-    args = parser.parse_args()
 
     logging.basicConfig(
         format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
@@ -176,4 +177,4 @@ if __name__ == '__main__':
     )
     logger = logging.getLogger(__name__)
 
-    main(arguments=args)
+    main()

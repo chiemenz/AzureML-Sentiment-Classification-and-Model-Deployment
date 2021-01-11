@@ -436,7 +436,4 @@ All in all this pointed out that a traditional machine learning approach with th
 [Video Summary of the Project](https://www.loom.com/share/ed1c914c3e954cc4967407fb1b450dc8)
 
 ## License
-The content of this repository is licensed under a [MIT License]()
-
-
-
+The content of this repository is licensed under a [MIT License](https://github.com/chiemenz/AzureML-Sentiment-Classification-and-Model-Deployment/blob/master/LICENSE.txt)

@@ -435,5 +435,8 @@ All in all this pointed out that a traditional machine learning approach with th
 ## VIDEO Summary
 [Video Summary of the Project](https://www.loom.com/share/ed1c914c3e954cc4967407fb1b450dc8)
 
+## License
+The content of this repository is licensed under a [MIT License]()
+
 
 

@@ -346,7 +346,7 @@ B. It could even be considered to merge the ratings 1*, 2*, 3* into a single cla
 Actually the distribution of the example Ratings in the TSNE embedding space for Topic embeddings, Roberta embeddings and TFIDF embeddings show that the current classes (Negative and Neutral) are strongly overlapping which would suggest this approach.
 See the next section in the Readme.md about _Extensive Exploratory Data-Analysis and Feature engineering_
 
-####3. AutoML with engineered features
+#### 3. AutoML with engineered features
 For sure it would be a fair comparison to perform the AutoML with the engineered features and not just the raw review texts. Also neural methods should be enabled for AutoML training. 
 
 #### 4. Test a Range of Neural Network architectures

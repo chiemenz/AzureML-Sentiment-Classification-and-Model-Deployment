@@ -315,6 +315,82 @@ also require more training time and more costly GPU resources.
 But the combination of polarity dictionaries, transformer embeddings and topic modeling was a very fruitful representation and 
 yielded some reasonable results in particular the test set **F1_score: 0.908**
 
+## How to improve the project in the future
+#### 1. Setup an azureml Pipeline
+
+From an azureml perspective a future improvement definitely would be to create 2 azureml Pipelines which include the text preprocessing step followed either by AutoML or Hyperdrive and a final custom evaluation step.
+This would enable the identification of a new model if additional training data is available and e.g. a _domain shift_ of the review data is observed over the time. 
+An advantage would be that this Pipeline could be easily triggered via an endpoint if the Pipeline is deployed by Publishing.   
+
+#### 2. Deal with class imbalance
+#####2.1 Stratified sampling:
+Another improvement of the current approach would be to deal better with the class imbalance e.g. via
+stratified sampling
+```
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.50, random_state=1, stratify=y)
+```
+#####2.2 Upsampling
+Alternatively a random boostrapping upsampling of the underrepresented Negative and Neutral samples could be performed. 
+#####2.3 Different binning of ratings to sentiment categories
+A. Furthermore, it has to be considered to bin the classes differently based on the original Rating column the Positive class into 2 classes e.g. 4 = Positive; 5 = Perfect
+* class 0 - Negative (1*&2*)
+* class 1 - Neutral (3*)
+* class 2 - Positive (4*)
+* class 3 - Perfect (5*)
+
+B. It could even be considered to merge the ratings 1*, 2*, 3* into a single class and convert the problem into a _binary sentiment classification problem_:
+* class 0 - Negative (1*,2*,3*)
+* class 1 - Positive (4*, 5*)
+
+Actually the distribution of the example Ratings in the TSNE embedding space for Topic embeddings, Roberta embeddings and TFIDF embeddings show that the current classes (Negative and Neutral) are strongly overlapping which would suggest this approach.
+See the next section in the Readme.md about _Extensive Exploratory Data-Analysis and Feature engineering_
+
+####3. AutoML with engineered features
+For sure it would be a fair comparison to perform the AutoML with the engineered features and not just the raw review texts. Also neural methods should be enabled for AutoML training. 
+
+####4. Test a Range of Neural Network architectures
+To further improve the performance of the sentiment classifier I would test a range of state of the art neural text classification network architectures which worked very well for some text classification tasks which I was conducting.
+Importantly it needs to be considered to perform Hyperdrive based parameter search these models on a GPU compute cluster.
+Also the training and evaluation code needs to be refactored to a _train.py_ script to enable hyperdrive based parameter search. 
+An important step for training/finetuning those neural text classification methods will be the implementation of DataLoaders which provide mini-batches to the models during the training and evaluation.
+
+#####4.1 Finetune a _bert-base-uncased_ for sequence classification model
+* [Train a BERT base text classifier with a Jupyter Notebook](https://colab.research.google.com/drive/1pTuQhug6Dhl9XalKB0zUGf4FIdYFlpcX#scrollTo=p9MCBOq4xUpr)
+* [Here is an excellent introduction to transformer models and a walkthrough for the Jupyter Notebook](https://www.youtube.com/watch?v=x66kkDnbzi4)
+A bert-base-uncased transformer model from huggingface can be finetuned on the sequence sentiment classification task.
+However the num_labels argument has to be set to 3. I previously have successfully trained some high performance text classification models with a customized version of this
+notebook in the past.
+```
+model = BertForSequenceClassification.from_pretrained(
+    "bert-base-uncased", # Use the 12-layer BERT model, with an uncased vocab.
+    num_labels = 3, # The number of output labels--3 for 3 classes
+    output_attentions = False, # Whether the model returns attentions weights.
+    output_hidden_states = False, # Whether the model returns all hidden-states.
+)
+```
+#####4.2 Finetune a _DistilBert_ for sequence classification model
+[How to train a DistilBert classifier](https://www.sunnyville.ai/fine-tuning-distilbert-multi-class-text-classification-using-transformers-and-tensorflow/)
+A TFDistilBertForSequenceClassification transformer model from the Huggingface transformers can be finetuned on the sentiment classification task
+
+#####4.3 Train a flair _TextClassifier_ model
+[FLAIR: An Easy-to-Use Framework for State-of-the-Art NLP](https://github.com/flairNLP/flair/blob/master/resources/docs/TUTORIAL_7_TRAINING_A_MODEL.md)
+With flair a TextClassifier can be trained by embedding the hotel reviews with concatenated 
+FlairEmbeddings ('news-forward' + 'news-backward') and WordEmbeddings('glove') with a single LSTM 
+DocumentRNNEmbeddings layer. 
+
+#####4.4 Train a flair _CNN_ text classifier with concatenated topic and text length features
+(Convolutional Neural Networks for Sentence Classification)[https://arxiv.org/pdf/1408.5882.pdf]
+[Implementation of the CNN with PyTorch in Github](https://github.com/cezannec/CNN_Text_Classification/blob/master/CNN_Text_Classification.ipynb)
+This widely used CNN text classification architecture as introduced by Yoon Kim 2015 needs to be trained on the Hotel Review Text classification task.
+As an input embedding matrix for the CNN I would rather use a sequence of the transformer embeddings as generated as input features in my current text classfier with the Roborta model.
+As in my current text classification approach I would truncate the texts to a maximum lenght as defined by the review length distribution.
+Also I would extend the Github Implementation for a concatenate the final flattened CNN representation topic model embeddings and text length features and use a softmax layer for the final classification. 
+
+The model should be exported in [ONNX format](ttps://docs.microsoft.com/de-de/windows/ai/windows-ml/get-onnx-model) to enable cross-platform compatibility:
+h and e.g. facilitate on edge deployment. 
+
+
 ## Extensive Exploratory Data-Analysis and Feature engineering
 
 A lot of feature engineering was performed prior to the Hyperparameter Tuning. 
@@ -324,17 +400,21 @@ Jupyter notebook:
 > [Exploratory Data Analysis and Feature Engineering](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/jupyter_notebooks/exploratory_data_analysis.ipynb)
 
 A tiny fraction of the gained insights is presented here:
+##### Exploratory Data Analysis
 > * [Topic Model Coherence Score Grid Search - 30 Topics were selected for the embedding](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/coherence_scores.png)
 > * [Mean Adjective Polarity Score - positive reviews tend to have higher scores](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/class_distribution_mean_adj.png)
 > * [Roberta Transformer Embedding TSNE - there are somewhat distinct subspaces for negative reviews](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/roberta_vector_tsne.png)
 > * [Topic Vector TSNE visualization - there are somewhat distinct subspaces for negative reviews](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/topic_vector_tsne.png)
 > * [TFIDF vector TSNE visualization - there are somewhat distinct subspaces for negative reviews](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/tfidf_vector_tsne.png)
 
+##### Sanity check of engineered features
 > * [confusion matrix: RandomForest default parameter sanity check are the engineered features reasonable](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/RF_roberta_embedding_confusion_matrix.PNG)
 > * [classification report: RandomForest default parameter sanity check are the engineered features reasonable](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/RF_roberta_embedding_metrics.PNG)
 > * [feature importance plot: RandomForest default parameter sanity check are the engineered features reasonable](https://github.com/chiemenz/automl_vs_hyperdrive/blob/master/RF_roberta_embedding_Feature_Importance.PNG)
 
 All in all this pointed out that a traditional machine learning approach with those engineered features is worth trying
+
+
 
 ## VIDEO Summary
 [Video Summary of the Project](https://www.loom.com/share/ed1c914c3e954cc4967407fb1b450dc8)
